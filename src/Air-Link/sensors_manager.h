@@ -7,7 +7,7 @@
 
 RisultatoDiagnostica eseguiControlloSensori();
 
-//LETTURA SENSORT DHT22
+// LETTURA SENSORE DHT22
 void Dht22() {
   float temperatura = dht.readTemperature();
   float umidita = dht.readHumidity();
@@ -30,7 +30,7 @@ void Dht22() {
   }
 }
 
-//LETTURA SENSORE BME280
+// LETTURA SENSORE BME280
 void Bme280() {
   float pressione = bme.readPressure() / 100.0F; // hPa
 
@@ -46,23 +46,29 @@ void Bme280() {
 // GESTIONE PIOGGIA E FOTORESISTORE
 inline void MeteoLable() {
   String meteo;
-  meteo.reserve(32); // Pre-alloca la memoria necessaria per evitare la frammentazione della RAM
+  meteo.reserve(32); // Pre-alloca la memoria per evitare frammentazione
 
-  // Costruzione dinamica usando la macro F() per salvare la memoria Flash
-  meteo = (digitalRead(RAIN_SENSOR) == LOW) ? F("🌧 Pioggia") : F("☀ No Pioggia");
-  meteo += F(" | ");
-  meteo += (digitalRead(FOTORESISTORE) == LOW) ? F("🌞 Giorno") : F("🌙 Notte");
+  // 1. Lettura Pioggia su pin D3 (LOW = Pioggia)
+  bool haPiovuto = (digitalRead(RAIN_SENSOR) == LOW);
+
+  // 2. Lettura Fotoresistore su pin D1 (LOW = Giorno)
+  bool eGiorno = (digitalRead(FOTORESISTORE) == LOW); 
+
+  // 3. Costruzione stringa per Blynk
+  meteo = haPiovuto ? "🌧 Pioggia" : "☀ No Pioggia";
+  meteo += " | ";
+  meteo += eGiorno ? "🌞 Giorno" : "🌙 Notte";
 
   // Invio a Blynk Virtual Pin V4
   Blynk.virtualWrite(V4, meteo);
 }
 
-//LETTURA SENSORE QUALITÀ DELL'ARIA MQ135
+// LETTURA SENSORE QUALITÀ DELL'ARIA MQ135
 void SensoreMQ135() {
   float temperatura = dht.readTemperature();
   float umidita = dht.readHumidity();
 
-  // Se i valori DHT22 non sono validi, usiamo valori standard per la calibrazione
+  // Se i valori DHT22 non sono validi, usiamo valori di default per la calibrazione
   if (isnan(temperatura) || isnan(umidita)) {
     temperatura = 20.0;
     umidita = 50.0;
@@ -75,33 +81,19 @@ void SensoreMQ135() {
     if (correctedPPM > co2Max) co2Max = correctedPPM;
     Blynk.virtualWrite(V6, correctedPPM); // Invio a Blynk Virtual Pin V6
   } else {
-    logWebSerial("Errore nella lettura o calcolo PPM da MQ135");
+    logWebSerial("❌ Errore nella lettura o calcolo PPM da MQ135");
   }
 }
 
-//MANAGER COORDINATORE DEI SENSORI
+// MANAGER COORDINATORE DEI SENSORI
 void ManagerSensori() {
   logWebSerial("Avvio lettura ciclica e aggiornamento Blynk Cloud...");
 
-  // Esegue il controllo di salute preliminare
-  RisultatoDiagnostica res = eseguiControlloSensori();
-
-  if (res.dhtOk) {
-    float temp = dht.readTemperature();
-    float hum = dht.readHumidity();
-    Blynk.virtualWrite(V0, temp);
-    Blynk.virtualWrite(V1, hum);
-  }
-
-  if (res.bmeOk) {
-    float pressione = bme.readPressure() / 100.0F;
-    Blynk.virtualWrite(V2, pressione);
-  }
-
-  if (res.mqOk) {
-    float ppm = gasSensor.getPPM();
-    Blynk.virtualWrite(V3, ppm);
-  }
+  // Esegue le letture ordinate e pulite inviando i dati ai Virtual Pin corretti
+  Dht22();
+  Bme280();
+  MeteoLable();
+  SensoreMQ135();
 
   // Notifica l'avvenuto invio a Blynk nel Seriale Web
   logWebSerial("[BLYNK] Pacchetto dati meteo inviato con successo!");

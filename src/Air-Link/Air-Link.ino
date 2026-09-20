@@ -25,14 +25,19 @@
  * =========================================================================
  */
 
+// 1. CONFIGURAZIONE E SERIALE WEB 
 #include "config.h"
-#include "sensors_manager.h"
+#include "web_serial.h"
 #include "diagnostics.h"
+
+// 2. GESTORE SENSORI
+#include "sensors_manager.h"
+
+// 3. GOOGLE SHEETS E WEB APP 
 #include "google_sheets.h"
 #include "1.png.h"
 #include "WebApp.h"
 #include "HardwareInfo.h"
-#include "web_serial.h"
 
 
 // Crea l'istanza del server sulla porta 80

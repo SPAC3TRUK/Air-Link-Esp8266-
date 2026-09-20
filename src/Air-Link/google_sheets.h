@@ -17,7 +17,7 @@ inline void InvioDatiGoogle() {
     http.begin(client, scriptURL);
     http.addHeader(F("Content-Type"), F("application/json"));
 
-    // Pre-allocazione per evitare allocazioni dinamiche continue
+    // Pre-allocazione memoria JSON
     String payload;
     payload.reserve(256);
     payload = F("{\"tempMin\":");
@@ -39,12 +39,13 @@ inline void InvioDatiGoogle() {
     payload += F("}");
 
     int httpResponseCode = http.POST(payload);
-    logWebSerial(F("[GoogleSheets] Risposta HTTP: "));
-    logWebSerial("httpResponseCode");
+    
+    // stampa il numero effettivo del codice HTTP
+    logWebSerial("[GoogleSheets] Risposta HTTP: " + String(httpResponseCode));
 
     http.end();
 
-    // Ripristino limiti per il giorno successivo
+    // Ripristino limiti per la nuova giornata
     tempMin = 100.0; tempMax = -100.0;
     umidMin = 100.0; umidMax = -100.0;
     co2Min = 10000.0; co2Max = -1.0;
@@ -56,7 +57,7 @@ inline void InvioDatiGoogle() {
   yield();
 }
 
-//CONTROLLO SCHEDULATO A MEZZANOTTE PER INVIO GOOGLE SHEETS
+// CONTROLLO SCHEDULATO A MEZZANOTTE PER INVIO GOOGLE SHEETS
 void checkMezzanotte() {
   time_t now = time(nullptr);
   struct tm* timeinfo = localtime(&now);
