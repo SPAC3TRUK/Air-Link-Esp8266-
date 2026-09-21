@@ -129,7 +129,7 @@ AirLinkWeatherStation/
 
 ## 🎥 Immagini e Video
 
-- Linkedin Post:
+- Linkedin Post: https://www.linkedin.com/posts/christianmosci_iot-esp8266-embeddedsystems-activity-7507849930984697856-ldRu?utm_medium=ios_app&rcm=ACoAAF6VTw4BLifhubJACR9bm4OS61etZEyogSo&utm_source=social_share_send&utm_campaign=copy_link
   
 ---
 
